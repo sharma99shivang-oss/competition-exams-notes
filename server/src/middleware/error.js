@@ -1,0 +1,2 @@
+export const notFound=(req,res)=>res.status(404).json({success:false,message:`Route ${req.originalUrl} not found`});
+export const errorHandler=(err,req,res,next)=>{console.error(err);const status=err.name==='ValidationError'||err.name==='CastError'||err.code===11000?422:err.statusCode||500;res.status(status).json({success:false,message:err.code===11000?'A record with this value already exists':err.message||'Internal server error',...(process.env.NODE_ENV==='development'&&{stack:err.stack})})};
