@@ -62,6 +62,62 @@ export const createOrder = async (req, res, next) => {
 };
 export const verify = async (req, res, next) => { try { const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body; const expected = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET).update(`${razorpay_order_id}|${razorpay_payment_id}`).digest('hex'); if (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(razorpay_signature || ''))) return res.status(400).json({ success: false, message: 'Invalid payment signature' }); const order = await Order.findOneAndUpdate({ razorpayOrderId: razorpay_order_id, status: 'pending' }, { $set: { status: 'paid', paymentId: razorpay_payment_id, signature: razorpay_signature, paidAt: new Date() } }, { new: true }); if (!order) return res.status(404).json({ success: false, message: 'Order is not pending' }); if (order.coupon) await Coupon.updateOne({ code: order.coupon }, { $inc: { usedCount: 1 } }); await Activity.create({ user: order.user, exam: order.exam, type: 'purchase' }); ok(res, { order, invoice: { number: `INV-${order._id}`, issuedAt: order.paidAt } }) } catch (e) { next(e) } };
 export const webhook = async (req, res, next) => { try { const signature = req.headers['x-razorpay-signature']; const expected = crypto.createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET || '').update(req.body).digest('hex'); if (!signature || !crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))) return res.status(400).json({ success: false, message: 'Invalid webhook signature' }); const event = JSON.parse(req.body.toString()); const payment = event.payload?.payment?.entity; if (event.event === 'payment.captured' && payment) { const order = await Order.findOneAndUpdate({ razorpayOrderId: payment.order_id, status: 'pending' }, { $set: { status: 'paid', paymentId: payment.id, paidAt: new Date() } }, { new: true }); if (order) await Activity.create({ user: order.user, exam: order.exam, type: 'purchase' }) } if (event.event === 'payment.failed' && payment) await Order.updateOne({ razorpayOrderId: payment.order_id, status: 'pending' }, { $set: { status: 'failed' } }); ok(res, { received: true }) } catch (e) { next(e) } };
-export const accessChapter = async (req, res, next) => { try { const chapter = await Chapter.findById(req.params.id).populate({ path: 'subject', populate: { path: 'exam' } }); if (!chapter) return res.status(404).json({ success: false, message: 'Chapter not found' }); const full = await owned(req.user._id, chapter.subject.exam._id); const file = full ? chapter.fullPdf : chapter.samplePdf; if (!file?.url) return res.status(404).json({ success: false, message: full ? 'Full PDF not uploaded' : 'Sample preview not available' }); const url = file.url.startsWith('/uploads/') ? file.url : cloudinary.utils.private_download_url(file.publicId, file.format, { resource_type: 'raw', type: 'upload', expires_at: Math.floor(Date.now() / 1000) + Number(process.env.SIGNED_URL_TTL_SECONDS || 300), attachment: full }); await Activity.create({ user: req.user._id, exam: chapter.subject.exam._id, chapter: chapter._id, type: full ? 'download' : 'view', meta: { preview: !full } }); ok(res, { url, expiresIn: Number(process.env.SIGNED_URL_TTL_SECONDS || 300), preview: !full, watermark: !full, allowDownload: !!full }) } catch (e) { next(e) } };
+export const accessChapter = async (req, res, next) => {
+    try {
+        const chapter = await Chapter.findById(req.params.id).populate({
+            path: "subject",
+            populate: { path: "exam" },
+        });
+
+        if (!chapter) {
+            return res.status(404).json({
+                success: false,
+                message: "Chapter not found",
+            });
+        }
+
+        const full = await owned(req.user._id, chapter.subject.exam._id);
+        const file = full ? chapter.fullPdf : chapter.samplePdf;
+
+        if (!file?.url) {
+            return res.status(404).json({
+                success: false,
+                message: full
+                    ? "Full PDF not uploaded"
+                    : "Sample preview not available",
+            });
+        }
+
+        // ✅ Local uploads
+        let url = file.url;
+
+        // ✅ Cloudinary uploads (RAW PDF)
+        if (!file.url.startsWith("/uploads/")) {
+            url = cloudinary.url(file.publicId, {
+                resource_type: "raw",
+                secure: true,
+            });
+        }
+
+        await Activity.create({
+            user: req.user._id,
+            exam: chapter.subject.exam._id,
+            chapter: chapter._id,
+            type: full ? "download" : "view",
+            meta: { preview: !full },
+        });
+
+        return res.json({
+            success: true,
+            data: {
+                url,
+                preview: !full,
+                allowDownload: full,
+            },
+        });
+    } catch (e) {
+        next(e);
+    }
+};
 export const myPurchases = async (req, res, next) => { try { const orders = await Order.find({ user: req.user._id, status: 'paid' }).populate('exam').sort('-paidAt'); const ids = orders.map(o => o.exam?._id).filter(Boolean); const [recent, downloads] = await Promise.all([Activity.find({ user: req.user._id, type: 'view' }).populate('chapter exam').sort('-createdAt').limit(8), Activity.find({ user: req.user._id, type: 'download' }).populate('chapter exam').sort('-createdAt').limit(30)]); ok(res, { orders, exams: orders.map(o => o.exam), recent, downloads, ownedExamIds: ids }) } catch (e) { next(e) } };
 export const reports = async (req, res, next) => { try { const [orders, top, downloads, users] = await Promise.all([Order.find({ status: 'paid' }).populate('user exam').sort('-paidAt'), Activity.aggregate([{ $match: { type: 'purchase' } }, { $group: { _id: '$exam', purchases: { $sum: 1 } } }, { $sort: { purchases: -1 } }, { $limit: 10 }, { $lookup: { from: 'exams', localField: '_id', foreignField: '_id', as: 'exam' } }]), Activity.countDocuments({ type: 'download' }), (await import('../models/User.js')).default.countDocuments()]); const revenue = orders.reduce((n, o) => n + o.total, 0); if (req.query.format === 'csv') { res.type('text/csv').attachment('competition-notes-report.csv').send(['Order,User,Exam,Amount,Date', ...orders.map(o => `${o._id},${o.user?.email || ''},"${o.exam?.title || ''}",${o.total},${o.paidAt || o.createdAt}`)].join('\n')); return } ok(res, { revenue, orders: orders.length, downloads, users, topExams: top.map(x => ({ exam: x.exam[0], purchases: x.purchases })) }) } catch (e) { next(e) } };

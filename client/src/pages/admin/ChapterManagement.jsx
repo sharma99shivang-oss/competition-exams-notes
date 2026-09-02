@@ -37,7 +37,7 @@ export default function ChapterManagement() {
         params: { limit: 100 },
       })
       .then((res) => setExams(res.data.data || []))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // ---------------- LOAD SUBJECTS ----------------
@@ -52,7 +52,7 @@ export default function ChapterManagement() {
         params: { exam, limit: 100 },
       })
       .then((res) => setSubjects(res.data.data || []))
-      .catch(() => {});
+      .catch(() => { });
   }, [exam]);
 
   // ---------------- LOAD CHAPTERS ----------------
@@ -124,7 +124,10 @@ export default function ChapterManagement() {
     const fd = new FormData();
 
     fd.append("title", data.title.trim());
-    fd.append("subject", data.subject);
+    fd.append(
+      "subject",
+      typeof data.subject === "object" ? data.subject._id : data.subject
+    );
     fd.append("description", data.description || "");
     fd.append("chapterNumber", Number(data.chapterNumber) || 1);
     fd.append("pagesCount", Number(data.pagesCount) || 0);
@@ -171,7 +174,7 @@ export default function ChapterManagement() {
         </div>
 
         <button
-          onClick={() => setEditing({ subject })}
+          onClick={() => setEditing({ subject: subject._id, })}
           className="rounded-xl bg-cyan-600 px-4 py-2 font-medium hover:bg-cyan-700"
         >
           <Plus className="mr-2 inline" size={18} />
@@ -312,11 +315,10 @@ export default function ChapterManagement() {
 
                   <td className="p-4">
                     <span
-                      className={`rounded-full px-3 py-1 text-xs ${
-                        chapter.published
-                          ? "bg-green-600/20 text-green-400"
-                          : "bg-yellow-500/20 text-yellow-300"
-                      }`}
+                      className={`rounded-full px-3 py-1 text-xs ${chapter.published
+                        ? "bg-green-600/20 text-green-400"
+                        : "bg-yellow-500/20 text-yellow-300"
+                        }`}
                     >
                       {chapter.published ? "Published" : "Draft"}
                     </span>
@@ -328,7 +330,12 @@ export default function ChapterManagement() {
 
                   <td className="flex gap-2 p-4">
                     <button
-                      onClick={() => setEditing(chapter)}
+                      onClick={() =>
+                        setEditing({
+                          ...chapter,
+                          subject: chapter.subject?._id || chapter.subject,
+                        })
+                      }
                       className="rounded-lg bg-blue-600 p-2 hover:bg-blue-700"
                     >
                       <Edit3 size={16} />
