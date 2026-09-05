@@ -88,16 +88,12 @@ export const accessChapter = async (req, res, next) => {
             });
         }
 
-        // ✅ Local uploads
+        // ✅ IMPORTANT: Cloudinary ka original URL hi use karo
         let url = file.url;
 
-        // ✅ Cloudinary uploads (RAW PDF)
-        if (!file.url.startsWith("/uploads/")) {
-            url = cloudinary.url(file.publicId, {
-                resource_type: "raw",
-                secure: true,
-            });
-        }
+        // if (!file.url.startsWith("/uploads/")) {
+        //     url = file.url.replace("/raw/upload/", "/image/upload/");
+        // }
 
         await Activity.create({
             user: req.user._id,
@@ -119,5 +115,58 @@ export const accessChapter = async (req, res, next) => {
         next(e);
     }
 };
-export const myPurchases = async (req, res, next) => { try { const orders = await Order.find({ user: req.user._id, status: 'paid' }).populate('exam').sort('-paidAt'); const ids = orders.map(o => o.exam?._id).filter(Boolean); const [recent, downloads] = await Promise.all([Activity.find({ user: req.user._id, type: 'view' }).populate('chapter exam').sort('-createdAt').limit(8), Activity.find({ user: req.user._id, type: 'download' }).populate('chapter exam').sort('-createdAt').limit(30)]); ok(res, { orders, exams: orders.map(o => o.exam), recent, downloads, ownedExamIds: ids }) } catch (e) { next(e) } };
+export const myPurchases = async (req, res, next) => {
+    try {
+        const orders = await Order.find({
+            user: req.user._id,
+            status: "paid",
+        })
+            .populate("exam")
+            .sort("-paidAt");
+
+        const ids = orders.map((o) => o.exam?._id).filter(Boolean);
+
+        const [recent, downloads] = await Promise.all([
+            Activity.find({ user: req.user._id, type: "view" })
+                .populate("chapter exam")
+                .sort("-createdAt")
+                .limit(8),
+
+            Activity.find({ user: req.user._id, type: "download" })
+                .populate("chapter exam")
+                .sort("-createdAt")
+                .limit(30),
+        ]);
+
+        // ✅ Add 1 year validity to every order
+        const ordersWithValidity = orders.map((order) => {
+            const purchaseDate = order.paidAt || order.createdAt;
+
+            const validTill = new Date(purchaseDate);
+            validTill.setFullYear(validTill.getFullYear() + 1);
+
+            return {
+                _id: order._id,
+                total: order.total,
+                amount: order.amount,
+                discount: order.discount,
+                status: order.status,
+                purchaseDate,
+                validTill,
+                isActive: validTill > new Date(),
+                exam: order.exam,
+            };
+        });
+
+        ok(res, {
+            orders: ordersWithValidity,
+            exams: orders.map((o) => o.exam),
+            recent,
+            downloads,
+            ownedExamIds: ids,
+        });
+    } catch (e) {
+        next(e);
+    }
+};
 export const reports = async (req, res, next) => { try { const [orders, top, downloads, users] = await Promise.all([Order.find({ status: 'paid' }).populate('user exam').sort('-paidAt'), Activity.aggregate([{ $match: { type: 'purchase' } }, { $group: { _id: '$exam', purchases: { $sum: 1 } } }, { $sort: { purchases: -1 } }, { $limit: 10 }, { $lookup: { from: 'exams', localField: '_id', foreignField: '_id', as: 'exam' } }]), Activity.countDocuments({ type: 'download' }), (await import('../models/User.js')).default.countDocuments()]); const revenue = orders.reduce((n, o) => n + o.total, 0); if (req.query.format === 'csv') { res.type('text/csv').attachment('competition-notes-report.csv').send(['Order,User,Exam,Amount,Date', ...orders.map(o => `${o._id},${o.user?.email || ''},"${o.exam?.title || ''}",${o.total},${o.paidAt || o.createdAt}`)].join('\n')); return } ok(res, { revenue, orders: orders.length, downloads, users, topExams: top.map(x => ({ exam: x.exam[0], purchases: x.purchases })) }) } catch (e) { next(e) } };

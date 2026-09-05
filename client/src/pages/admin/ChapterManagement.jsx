@@ -174,7 +174,16 @@ export default function ChapterManagement() {
         </div>
 
         <button
-          onClick={() => setEditing({ subject: subject._id, })}
+          onClick={() => setEditing({
+            subject: subject,
+            title: "",
+            description: "",
+            chapterNumber: 1,
+            pagesCount: 0,
+            previewEnabled: false,
+            published: true,
+            isPremium: true, // ✅ Default Premium
+          })}
           className="rounded-xl bg-cyan-600 px-4 py-2 font-medium hover:bg-cyan-700"
         >
           <Plus className="mr-2 inline" size={18} />
