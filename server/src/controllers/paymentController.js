@@ -124,46 +124,52 @@ export const myPurchases = async (req, res, next) => {
             .populate("exam")
             .sort("-paidAt");
 
-        const ids = orders.map((o) => o.exam?._id).filter(Boolean);
-
-        const [recent, downloads] = await Promise.all([
-            Activity.find({ user: req.user._id, type: "view" })
-                .populate("chapter exam")
-                .sort("-createdAt")
-                .limit(8),
-
-            Activity.find({ user: req.user._id, type: "download" })
-                .populate("chapter exam")
-                .sort("-createdAt")
-                .limit(30),
-        ]);
-
-        // ✅ Add 1 year validity to every order
-        const ordersWithValidity = orders.map((order) => {
+        // Add purchase date, valid till (1 year), active status
+        const formattedOrders = orders.map((order) => {
             const purchaseDate = order.paidAt || order.createdAt;
 
             const validTill = new Date(purchaseDate);
             validTill.setFullYear(validTill.getFullYear() + 1);
 
             return {
-                _id: order._id,
-                total: order.total,
-                amount: order.amount,
-                discount: order.discount,
-                status: order.status,
+                ...order.toObject(),
                 purchaseDate,
                 validTill,
                 isActive: validTill > new Date(),
-                exam: order.exam,
             };
         });
 
-        ok(res, {
-            orders: ordersWithValidity,
-            exams: orders.map((o) => o.exam),
-            recent,
-            downloads,
-            ownedExamIds: ids,
+        const ownedExamIds = formattedOrders
+            .map((o) => o.exam?._id?.toString())
+            .filter(Boolean);
+
+        const [recent, downloads] = await Promise.all([
+            Activity.find({
+                user: req.user._id,
+                type: "view",
+            })
+                .populate("chapter exam")
+                .sort("-createdAt")
+                .limit(8),
+
+            Activity.find({
+                user: req.user._id,
+                type: "download",
+            })
+                .populate("chapter exam")
+                .sort("-createdAt")
+                .limit(30),
+        ]);
+
+        return res.json({
+            success: true,
+            data: {
+                orders: formattedOrders,
+                exams: formattedOrders.map((o) => o.exam),
+                recent,
+                downloads,
+                ownedExamIds,
+            },
         });
     } catch (e) {
         next(e);

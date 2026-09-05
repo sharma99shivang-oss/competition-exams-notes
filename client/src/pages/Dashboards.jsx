@@ -242,101 +242,97 @@ export function UserSection({ type }) {
             {type === "orders" && (
                 <div className="mt-6 space-y-5">
                     {data.length ? (
-                        data.map((order) => (
-                            <article
-                                key={order._id}
-                                className="rounded-2xl border border-white/10 bg-[#111A3C] p-6"
-                            >
-                                <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                                    <div className="flex gap-4">
-                                        <div className="grid h-16 w-16 place-items-center rounded-xl bg-violet-600/20">
-                                            <BookOpen
-                                                className="text-violet-400"
-                                                size={28}
-                                            />
-                                        </div>
+                        data.map((order) => {
+                            // Purchase date = paidAt ya createdAt
+                            const purchaseDate = order.purchaseDate || order.paidAt || order.createdAt;
 
-                                        <div>
-                                            <h2 className="text-xl font-bold">
-                                                {order.exam?.title}
-                                            </h2>
+                            // 1 year validity calculate
+                            const validTill =
+                                order.validTill ||
+                                new Date(new Date(purchaseDate).setFullYear(new Date(purchaseDate).getFullYear() + 1));
 
-                                            <div className="mt-2">
-                                                <span
-                                                    className={`rounded-full px-3 py-1 text-sm ${order.isActive
-                                                        ? "bg-emerald-500/20 text-emerald-300"
-                                                        : "bg-red-500/20 text-red-300"
-                                                        }`}
-                                                >
-                                                    {order.isActive
-                                                        ? "Active (1 Year)"
-                                                        : "Expired"}
-                                                </span>
+                            // Active / Expired
+                            const isActive =
+                                order.isActive !== undefined
+                                    ? order.isActive
+                                    : new Date(validTill) > new Date();
+
+                            return (
+                                <article
+                                    key={order._id}
+                                    className="rounded-2xl border border-white/10 bg-[#111A3C] p-6"
+                                >
+                                    <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                                        <div className="flex gap-4">
+                                            <div className="grid h-16 w-16 place-items-center rounded-xl bg-violet-600/20">
+                                                <BookOpen className="text-violet-400" size={28} />
+                                            </div>
+
+                                            <div>
+                                                <h2 className="text-xl font-bold">{order.exam?.title}</h2>
+
+                                                <div className="mt-2">
+                                                    <span
+                                                        className={`rounded-full px-3 py-1 text-sm ${isActive
+                                                            ? "bg-emerald-500/20 text-emerald-300"
+                                                            : "bg-red-500/20 text-red-300"
+                                                            }`}
+                                                    >
+                                                        {isActive ? "Active (1 Year)" : "Expired"}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
+
+                                        <Link
+                                            to={`/exam/${order.exam?.slug}`}
+                                            className="rounded-xl bg-violet-600 px-5 py-3 text-center font-semibold hover:bg-violet-700"
+                                        >
+                                            Open Notes
+                                        </Link>
                                     </div>
 
-                                    <Link
-                                        to={`/exam/${order.exam?.slug}`}
-                                        className="rounded-xl bg-violet-600 px-5 py-3 text-center font-semibold hover:bg-violet-700"
-                                    >
-                                        Open Notes
-                                    </Link>
-                                </div>
+                                    <div className="mt-6 grid gap-4 md:grid-cols-3">
+                                        {/* Purchase Date */}
+                                        <div className="rounded-xl bg-white/5 p-4">
+                                            <Calendar className="mb-2 text-violet-400" size={20} />
+                                            <p className="text-xs text-slate-400">Purchase Date</p>
 
-                                <div className="mt-6 grid gap-4 md:grid-cols-3">
-                                    <div className="rounded-xl bg-white/5 p-4">
-                                        <Calendar
-                                            className="mb-2 text-violet-400"
-                                            size={20}
-                                        />
-                                        <p className="text-xs text-slate-400">
-                                            Purchase Date
-                                        </p>
+                                            <p className="font-semibold">
+                                                {purchaseDate
+                                                    ? new Date(purchaseDate).toLocaleDateString("en-IN")
+                                                    : "-"}
+                                            </p>
+                                        </div>
 
-                                        <p className="font-semibold">
-                                            {new Date(
-                                                order.purchaseDate
-                                            ).toLocaleDateString("en-IN")}
-                                        </p>
+                                        {/* Valid Till */}
+                                        <div className="rounded-xl bg-white/5 p-4">
+                                            <Clock className="mb-2 text-yellow-400" size={20} />
+                                            <p className="text-xs text-slate-400">Valid Till</p>
+
+                                            <p className="font-semibold">
+                                                {new Date(validTill).toLocaleDateString("en-IN")}
+                                            </p>
+                                        </div>
+
+                                        {/* Amount */}
+                                        <div className="rounded-xl bg-white/5 p-4">
+                                            <BadgeCheck className="mb-2 text-emerald-400" size={20} />
+                                            <p className="text-xs text-slate-400">Amount Paid</p>
+
+                                            <p className="font-semibold text-emerald-400">
+                                                {money(order.total)}
+                                            </p>
+                                        </div>
                                     </div>
 
-                                    <div className="rounded-xl bg-white/5 p-4">
-                                        <Clock
-                                            className="mb-2 text-yellow-400"
-                                            size={20}
-                                        />
-                                        <p className="text-xs text-slate-400">
-                                            Valid Till
-                                        </p>
-
-                                        <p className="font-semibold">
-                                            {new Date(
-                                                order.validTill
-                                            ).toLocaleDateString("en-IN")}
-                                        </p>
+                                    <div className="mt-5 border-t border-white/10 pt-4 text-xs text-slate-500">
+                                        Order ID: {order._id}
                                     </div>
+                                </article>
+                            );
+                        })
 
-                                    <div className="rounded-xl bg-white/5 p-4">
-                                        <BadgeCheck
-                                            className="mb-2 text-emerald-400"
-                                            size={20}
-                                        />
-                                        <p className="text-xs text-slate-400">
-                                            Amount Paid
-                                        </p>
-
-                                        <p className="font-semibold text-emerald-400">
-                                            {money(order.total)}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="mt-5 border-t border-white/10 pt-4 text-xs text-slate-500">
-                                    Order ID: {order._id}
-                                </div>
-                            </article>
-                        ))
                     ) : (
                         <Panel title="Orders">
                             <p className="py-8 text-center text-slate-400">
