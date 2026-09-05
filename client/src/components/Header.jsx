@@ -1,5 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
-import { BookOpen, Menu, Sun, Moon, X } from "lucide-react";
+// import { BookOpen, Menu, Sun, Moon, X } from "lucide-react";
+import { BookOpen, Menu, X } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 
@@ -7,12 +8,12 @@ export default function Header() {
   const { user } = useSelector((state) => state.auth);
 
   const [open, setOpen] = useState(false);
-  const [light, setLight] = useState(() => localStorage.theme === "light");
+  // const [light, setLight] = useState(() => localStorage.theme === "light");
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("light", light);
-    localStorage.theme = light ? "light" : "dark";
-  }, [light]);
+  // useEffect(() => {
+  //   document.documentElement.classList.toggle("light", light);
+  //   localStorage.theme = light ? "light" : "dark";
+  // }, [light]);
 
   useEffect(() => {
     document.body.classList.toggle("overflow-hidden", open);
@@ -45,12 +46,12 @@ export default function Header() {
 
         {/* Right Side */}
         <div className="flex items-center gap-3">
-          <button aria-label="Toggle colour theme"
+          {/* <button aria-label="Toggle colour theme"
             onClick={() => setLight((v) => !v)}
             className="rounded-lg p-2 text-slate-300"
           >
             {light ? <Moon size={18} /> : <Sun size={18} />}
-          </button>
+          </button> */}
 
           {/* PUBLIC USER */}
           {!user && (
