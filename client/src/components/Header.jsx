@@ -14,18 +14,23 @@ export default function Header() {
     localStorage.theme = light ? "light" : "dark";
   }, [light]);
 
+  useEffect(() => {
+    document.body.classList.toggle("overflow-hidden", open);
+    return () => document.body.classList.remove("overflow-hidden");
+  }, [open]);
+
   const close = () => setOpen(false);
 
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-[#080c1b]/90 backdrop-blur">
-      <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between px-5">
+      <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-5">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 font-bold text-lg">
+        <Link to="/" className="min-w-0 flex items-center gap-2 font-bold text-base sm:text-lg">
           <span className="rounded-lg bg-indigo-600 p-2">
             <BookOpen size={18} />
           </span>
 
-          <span>
+          <span className="truncate">
             Competition <span className="text-violet-400">Notes</span>
           </span>
         </Link>
@@ -40,7 +45,7 @@ export default function Header() {
 
         {/* Right Side */}
         <div className="flex items-center gap-3">
-          <button
+          <button aria-label="Toggle colour theme"
             onClick={() => setLight((v) => !v)}
             className="rounded-lg p-2 text-slate-300"
           >
@@ -70,9 +75,10 @@ export default function Header() {
           {user && user.role === "user" && (
             <Link
               to="/dashboard"
-              className="hidden sm:block rounded-lg bg-violet-600 px-5 py-2 font-semibold hover:bg-violet-700"
+              className="flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700"
             >
-              My Dashboard
+              <BookOpen size={18} />
+              <span className="hidden md:inline">Dashboard</span>
             </Link>
           )}
 
@@ -80,15 +86,16 @@ export default function Header() {
           {user && user.role === "admin" && (
             <Link
               to="/admin"
-              className="hidden sm:block rounded-lg bg-red-600 px-5 py-2 font-semibold hover:bg-red-700"
+              className="flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
             >
-              Admin Panel
+              <BookOpen size={18} />
+              <span className="hidden md:inline">Admin Panel</span>
             </Link>
           )}
 
           {/* Mobile Menu Button */}
           <button
-            onClick={() => setOpen(true)}
+            aria-label="Open navigation" onClick={() => setOpen(true)}
             className="rounded-lg p-2 md:hidden"
           >
             <Menu />
@@ -104,31 +111,31 @@ export default function Header() {
             onClick={close}
           ></button>
 
-          <nav className="absolute right-0 top-0 flex h-full w-72 flex-col gap-3 bg-[#10172A] p-5 text-white">
-            <button onClick={close} className="self-end">
+          <nav aria-label="Mobile navigation" className="absolute right-0 top-0 flex h-full w-72 max-w-[86vw] flex-col gap-2 bg-[#10172A] p-5 text-white shadow-2xl">
+            <button aria-label="Close navigation" onClick={close} className="self-end rounded-lg p-2 hover:bg-white/10">
               <X />
             </button>
 
-            <Link to="/exams" onClick={close}>Exams</Link>
-            <Link to="/about" onClick={close}>About</Link>
-            <Link to="/faq" onClick={close}>FAQ</Link>
-            <Link to="/contact" onClick={close}>Contact</Link>
+            <Link className="rounded-lg px-3 py-3 hover:bg-white/10" to="/exams" onClick={close}>Exams</Link>
+            <Link className="rounded-lg px-3 py-3 hover:bg-white/10" to="/about" onClick={close}>About</Link>
+            <Link className="rounded-lg px-3 py-3 hover:bg-white/10" to="/faq" onClick={close}>FAQ</Link>
+            <Link className="rounded-lg px-3 py-3 hover:bg-white/10" to="/contact" onClick={close}>Contact</Link>
 
             {!user && (
               <>
-                <Link to="/login" onClick={close}>Login</Link>
-                <Link to="/signup" onClick={close}>Sign Up</Link>
+                <Link className="rounded-lg px-3 py-3 hover:bg-white/10" to="/login" onClick={close}>Login</Link>
+                <Link className="rounded-lg bg-violet-600 px-3 py-3" to="/signup" onClick={close}>Sign Up</Link>
               </>
             )}
 
             {user?.role === "user" && (
-              <Link to="/dashboard" onClick={close}>
+              <Link className="rounded-lg bg-violet-600 px-3 py-3" to="/dashboard" onClick={close}>
                 My Dashboard
               </Link>
             )}
 
             {user?.role === "admin" && (
-              <Link to="/admin" onClick={close}>
+              <Link className="rounded-lg bg-red-600 px-3 py-3" to="/admin" onClick={close}>
                 Admin Panel
               </Link>
             )}

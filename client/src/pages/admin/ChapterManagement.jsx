@@ -164,8 +164,8 @@ export default function ChapterManagement() {
 
   // ======================= UI =======================
   return (
-    <div className="space-y-6 p-6 text-white">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 text-white">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Chapter Management</h1>
           <p className="text-slate-400">
@@ -184,7 +184,7 @@ export default function ChapterManagement() {
             published: true,
             isPremium: true, // ✅ Default Premium
           })}
-          className="rounded-xl bg-cyan-600 px-4 py-2 font-medium hover:bg-cyan-700"
+          className="w-full rounded-xl bg-cyan-600 px-4 py-3 font-medium hover:bg-cyan-700 sm:w-auto"
         >
           <Plus className="mr-2 inline" size={18} />
           Add Chapter
@@ -241,32 +241,43 @@ export default function ChapterManagement() {
 
       {/* Bulk Actions */}
       {pick.length > 0 && (
-        <div className="flex gap-3 rounded-xl bg-slate-900 p-4">
+        <div className="flex flex-col gap-3 rounded-xl bg-slate-900 p-4 sm:flex-row sm:flex-wrap">
           <button
             onClick={() => bulk("publish")}
-            className="rounded-lg bg-green-600 px-3 py-2"
+            className="rounded-lg bg-green-600 px-3 py-2 sm:flex-1"
           >
             Publish Selected
           </button>
 
           <button
             onClick={() => bulk("unpublish")}
-            className="rounded-lg bg-yellow-600 px-3 py-2"
+            className="rounded-lg bg-yellow-600 px-3 py-2 sm:flex-1"
           >
             Unpublish Selected
           </button>
 
           <button
             onClick={() => bulk("delete")}
-            className="rounded-lg bg-red-600 px-3 py-2"
+            className="rounded-lg bg-red-600 px-3 py-2 sm:flex-1"
           >
             Delete Selected
           </button>
         </div>
       )}
 
-      {/* Table */}
-      <div className="overflow-hidden rounded-2xl bg-slate-900">
+      {/* Mobile cards */}
+      <div className="space-y-3 md:hidden">
+        {loading ? <div className="rounded-2xl bg-slate-900 p-5 text-center">Loading...</div> : chapters.length === 0 ? <div className="rounded-2xl bg-slate-900 p-5 text-center">No Chapters Found</div> : chapters.map((chapter) => (
+          <article key={chapter._id} className="rounded-2xl bg-slate-900 p-4">
+            <div className="flex items-start gap-3"><input className="mt-1" type="checkbox" checked={pick.includes(chapter._id)} onChange={(e) => setPick(e.target.checked ? [...pick, chapter._id] : pick.filter((id) => id !== chapter._id))} /><div className="min-w-0 flex-1"><h2 className="break-words font-semibold">{chapter.title}</h2><p className="mt-1 text-sm text-slate-400">Chapter {chapter.chapterNumber} · {chapter.pagesCount} pages</p></div></div>
+            <div className="mt-4 flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs ${chapter.published ? "bg-green-600/20 text-green-400" : "bg-yellow-500/20 text-yellow-300"}`}>{chapter.published ? "Published" : "Draft"}</span><span className="rounded-full bg-violet-500/15 px-3 py-1 text-xs text-violet-200">{chapter.isPremium ? "Premium" : "Free"}</span></div>
+            <div className="mt-4 grid grid-cols-2 gap-2"><button onClick={() => setEditing({ ...chapter, subject: chapter.subject?._id || chapter.subject })} className="rounded-lg bg-blue-600 p-2 hover:bg-blue-700"><Edit3 className="mr-1 inline" size={16} />Edit</button><button onClick={() => remove(chapter._id)} className="rounded-lg bg-red-600 p-2 hover:bg-red-700"><Trash2 className="mr-1 inline" size={16} />Delete</button></div>
+          </article>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden overflow-hidden rounded-2xl bg-slate-900 md:block">
         <table className="w-full">
           <thead className="bg-slate-800 text-left text-sm text-slate-300">
             <tr>
@@ -397,9 +408,9 @@ function ChapterForm({ value, onClose, onSubmit, progress }) {
     <div className="fixed inset-0 z-50 overflow-auto bg-black/70 p-5">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="mx-auto max-w-3xl rounded-2xl bg-slate-900 p-6"
+        className="mx-auto my-2 max-w-3xl rounded-2xl bg-slate-900 p-4 sm:p-6"
       >
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-5 flex items-center justify-between gap-3">
           <h2 className="text-2xl font-bold">
             {value._id ? "Edit Chapter" : "Add Chapter"}
           </h2>
@@ -499,16 +510,16 @@ function ChapterForm({ value, onClose, onSubmit, progress }) {
           </div>
         )}
 
-        <div className="mt-6 flex justify-end gap-3">
+        <div className="mt-6 grid gap-3 sm:flex sm:justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-slate-600 px-4 py-2"
+            className="rounded-lg border border-slate-600 px-4 py-3"
           >
             Cancel
           </button>
 
-          <button className="rounded-lg bg-cyan-600 px-4 py-2 hover:bg-cyan-700">
+          <button className="rounded-lg bg-cyan-600 px-4 py-3 hover:bg-cyan-700">
             <UploadCloud size={16} className="mr-2 inline" />
             Save Chapter
           </button>
@@ -525,7 +536,7 @@ function FileField({ label, name, accept, multiple, register }) {
     <label className="block">
       <span className="mb-2 block text-sm">{label}</span>
 
-      <div className="flex items-center gap-2 rounded-lg border border-dashed border-slate-600 bg-slate-800 p-3">
+      <div className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-slate-600 bg-slate-800 p-3 sm:flex-row sm:items-center">
         <ImagePlus size={18} />
 
         <input

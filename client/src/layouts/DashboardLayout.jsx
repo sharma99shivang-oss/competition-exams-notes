@@ -1,4 +1,5 @@
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { clear } from "../store/authSlice";
 import { api } from "../store/api";
@@ -17,11 +18,24 @@ import {
     Tag,
     IndianRupee,
     BarChart3,
+    Menu,
+    X,
 } from "lucide-react";
 
 export default function DashboardLayout({ admin = false }) {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
+    const location = useLocation();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    useEffect(() => {
+        setSidebarOpen(false);
+    }, [location.pathname]);
+
+    useEffect(() => {
+        document.body.classList.toggle("overflow-hidden", sidebarOpen);
+        return () => document.body.classList.remove("overflow-hidden");
+    }, [sidebarOpen]);
 
     const logout = async () => {
         try {
@@ -58,10 +72,12 @@ export default function DashboardLayout({ admin = false }) {
     const menu = admin ? adminMenu : userMenu;
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white flex">
+        <div className="min-h-screen bg-slate-950 text-white md:flex">
+            {sidebarOpen && <button aria-label="Close navigation" onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-40 bg-black/60 md:hidden" />}
             {/* Sidebar */}
-            <aside className="w-72 bg-[#10172A] border-r border-slate-800 flex flex-col">
+            <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[86vw] flex-col border-r border-slate-800 bg-[#10172A] shadow-2xl transition-transform duration-300 md:sticky md:top-0 md:h-screen md:max-w-none md:translate-x-0 md:shadow-none ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
                 <div className="p-6 border-b border-slate-800">
+                    <button aria-label="Close navigation" onClick={() => setSidebarOpen(false)} className="absolute right-4 top-4 rounded-lg p-2 hover:bg-white/10 md:hidden"><X size={20} /></button>
                     <h1 className="text-xl font-bold text-violet-400">
                         Competition Notes
                     </h1>
@@ -90,7 +106,7 @@ export default function DashboardLayout({ admin = false }) {
                                 to={item.path}
                                 end={item.path === "/dashboard" || item.path === "/admin"}
                                 className={({ isActive }) =>
-                                    `flex items-center gap-3 rounded-lg px-4 py-3 transition ${isActive
+                                    `flex min-h-11 items-center gap-3 rounded-lg px-4 py-3 transition ${isActive
                                         ? "bg-violet-600 text-white"
                                         : "text-slate-300 hover:bg-slate-800"
                                     }`
@@ -115,18 +131,19 @@ export default function DashboardLayout({ admin = false }) {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto bg-slate-950">
-                <div className="border-b border-slate-800 bg-[#0F172A] px-8 py-5">
-                    <h2 className="text-2xl font-bold">
+            <main className="min-w-0 flex-1 overflow-y-auto bg-slate-950">
+                <div className="flex items-center gap-3 border-b border-slate-800 bg-[#0F172A] px-4 py-4 sm:px-6 md:px-8 md:py-5">
+                    <button aria-label="Open navigation" onClick={() => setSidebarOpen(true)} className="rounded-lg p-2 hover:bg-white/10 md:hidden"><Menu size={22} /></button>
+                    <div className="min-w-0"><h2 className="text-xl font-bold sm:text-2xl">
                         {admin ? "Admin Dashboard" : "My Dashboard"}
                     </h2>
 
                     <p className="text-slate-400 text-sm mt-1">
                         Welcome {user?.name}
-                    </p>
+                    </p></div>
                 </div>
 
-                <div className="p-8">
+                <div className="p-4 sm:p-6 md:p-8">
                     <Outlet />
                 </div>
             </main>

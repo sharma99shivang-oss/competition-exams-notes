@@ -104,7 +104,7 @@ function ExamCard({ exam, wishlist, toggleWishlist, owned }) {
                 </div>
 
                 {/* Buttons */}
-                <div className="mt-5 grid grid-cols-2 gap-2">
+                <div className="mt-5 grid gap-2 sm:grid-cols-2">
                     <Link
                         className="btn btn-primary text-center text-sm"
                         to={`/exam/${exam.slug}`}
@@ -184,7 +184,7 @@ function ExamGrid({ limit }) {
     if (error) return <p className="mt-8 text-rose-300">{error}</p>;
 
     return (
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {exams.map((exam) => (
                 <ExamCard
                     key={exam._id}
@@ -203,26 +203,26 @@ function ExamGrid({ limit }) {
 }
 export function MarketplaceHome() {
     return <><section className="mesh">
-        <div className="mx-auto max-w-7xl px-5 py-20 md:py-28">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-5 sm:py-20 md:py-28">
             <p className="inline-block rounded-full border border-indigo-400/40 bg-indigo-500/10 px-3 py-1 text-sm text-indigo-200">Premium notes for ambitious learners</p>
-            <h1 className="mt-5 text-5xl font-black md:text-6xl">Prepare smarter.<br />
+            <h1 className="mt-5 text-4xl font-black sm:text-5xl md:text-6xl">Prepare smarter.<br />
                 <span className="gradient-text">Achieve bigger.</span></h1><p className="mt-6 max-w-xl text-lg text-slate-300">Browse published exam notes, preview samples, and unlock full study material after purchase.</p>
             <br></br>
-            <Link to="/exams" className="btn btn-primary mt-8">Explore exams</Link>
+            <Link to="/exams" className="btn btn-primary mt-8 w-full text-center sm:inline-block sm:w-auto">Explore exams</Link>
         </div>
 
     </section>
-        <section className="mx-auto max-w-7xl px-5 py-16">
-            <div className="flex items-end justify-between"><div><h2 className="text-3xl font-bold">Popular exams</h2>
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-5 sm:py-16">
+            <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-2xl font-bold sm:text-3xl">Popular exams</h2>
                 <p className="mt-2 text-slate-400">Freshly published by our academic team.</p>
             </div>
                 <Link to="/exams" className="text-indigo-300">View all →</Link></div><ExamGrid limit={6} /></section></>
 }
 export function MarketplaceExams() {
-    return <section className="mx-auto max-w-7xl px-5 py-16">
+    return <section className="mx-auto max-w-7xl px-4 py-12 sm:px-5 sm:py-16">
 
         <p className="text-indigo-300">Explore the library</p>
-        <h1 className="mt-2 text-4xl font-bold">Find your examination</h1><ExamGrid /></section>
+        <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Find your examination</h1><ExamGrid /></section>
 }
 
 export function ExamDetail() {
@@ -350,12 +350,12 @@ export function ExamDetail() {
     </section>; if (!exam) return <div className="grid min-h-80 place-items-center text-slate-400">Loading exam…</div>;
     return <main><section className="relative min-h-72 overflow-hidden bg-indigo-950">
         {exam.banner?.url && <img className="absolute inset-0 h-full w-full object-cover opacity-40" src={asset(exam.banner.url)} alt="" />}
-        <div className="relative mx-auto max-w-7xl px-5 py-16">
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-5 sm:py-16">
             <p className="text-indigo-200">{exam.language}</p>
-            <h1 className="mt-2 text-4xl font-black">{exam.title}</h1>
+            <h1 className="mt-2 break-words text-3xl font-black sm:text-4xl">{exam.title}</h1>
             <p className="mt-4 max-w-2xl text-slate-200">{exam.description}</p>
             <div className="mt-6 flex flex-wrap items-center gap-4">
-                <b className="text-2xl">{money(exam.discountPrice ?? exam.price)}</b>{owned ? <span className="rounded-full bg-emerald-400/20 px-3 py-1 text-emerald-200">Purchased · Full notes unlocked</span> : <button disabled={busy} onClick={buy} className="btn btn-primary"><ShoppingCart className="mr-1 inline" size={16} />{busy ? 'Starting…' : 'Buy now'}</button>}</div></div></section><section className="mx-auto max-w-5xl px-5 py-12"><h2 className="text-2xl font-bold">Subjects & chapters</h2><div className="mt-5 space-y-4">{exam.subjects?.map(subject => <details className="glass rounded-2xl p-5" key={subject._id} open><summary className="cursor-pointer font-bold">{subject.name}<span className="ml-2 text-sm font-normal text-slate-400">{subject.description}</span></summary><div className="mt-4 space-y-3">{subject.chapters?.map(chapter => <article className="rounded-xl bg-white/5 p-4" key={chapter._id}><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-semibold">{chapter.chapterNumber}. {chapter.title}</h3><p className="mt-1 text-sm text-slate-400">{chapter.description}</p></div>{chapter.sampleVideo?.url && <video className="w-full max-w-sm rounded-lg" controls src={asset(chapter.sampleVideo.url)} />}</div><div className="mt-3 flex flex-wrap gap-2"><button onClick={() => openPdf(chapter._id)} className="btn border border-white/10 bg-white/5 text-sm"><FileText className="mr-1 inline" size={15} />Sample PDF</button>{chapter.sampleImages?.map(image => <a key={image.url} className="btn border border-white/10 bg-white/5 text-sm" target="_blank" rel="noreferrer" href={asset(image.url)}>Sample image</a>)}{owned ?
+                <b className="text-2xl">{money(exam.discountPrice ?? exam.price)}</b>{owned ? <span className="rounded-full bg-emerald-400/20 px-3 py-1 text-emerald-200">Purchased · Full notes unlocked</span> : <button disabled={busy} onClick={buy} className="btn btn-primary w-full sm:w-auto"><ShoppingCart className="mr-1 inline" size={16} />{busy ? 'Starting…' : 'Buy now'}</button>}</div></div></section><section className="mx-auto max-w-5xl px-4 py-10 sm:px-5 sm:py-12"><h2 className="text-2xl font-bold">Subjects & chapters</h2><div className="mt-5 space-y-4">{exam.subjects?.map(subject => <details className="glass rounded-2xl p-4 sm:p-5" key={subject._id} open><summary className="cursor-pointer break-words font-bold">{subject.name}<span className="ml-2 text-sm font-normal text-slate-400">{subject.description}</span></summary><div className="mt-4 space-y-3">{subject.chapters?.map(chapter => <article className="rounded-xl bg-white/5 p-4" key={chapter._id}><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><h3 className="font-semibold">{chapter.chapterNumber}. {chapter.title}</h3><p className="mt-1 break-words text-sm text-slate-400">{chapter.description}</p></div>{chapter.sampleVideo?.url && <video className="w-full max-w-sm rounded-lg" controls src={asset(chapter.sampleVideo.url)} />}</div><div className="mt-3 grid gap-2 sm:flex sm:flex-wrap"><button onClick={() => openPdf(chapter._id)} className="btn border border-white/10 bg-white/5 text-sm"><FileText className="mr-1 inline" size={15} />Sample PDF</button>{chapter.sampleImages?.map(image => <a key={image.url} className="btn border border-white/10 bg-white/5 text-center text-sm" target="_blank" rel="noreferrer" href={asset(image.url)}>Sample image</a>)}{owned ?
 
                     <button onClick={() => openPdf(chapter._id, true)} className="btn btn-primary text-sm">Download full PDF</button>
 

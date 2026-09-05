@@ -74,7 +74,7 @@ export function UserSection({ type }) {
 
     return (
         <>
-            <h1 className="text-3xl font-bold">{title}</h1>
+            <h1 className="text-2xl font-bold sm:text-3xl">{title}</h1>
 
             {/* PROFILE */}
             {type === "profile" && (
@@ -105,7 +105,7 @@ export function UserSection({ type }) {
                         Manage your preferences and notification settings.
                     </p>
 
-                    <button className="btn btn-primary mt-5">
+                    <button className="btn btn-primary mt-5 w-full sm:w-auto">
                         Save Preferences
                     </button>
                 </Panel>
@@ -125,12 +125,12 @@ export function UserSection({ type }) {
                                         className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-[#111A3C] p-5 md:flex-row md:items-center md:justify-between"
                                     >
                                         {/* Left */}
-                                        <div className="flex gap-4">
+                                        <div className="flex min-w-0 gap-4">
                                             {exam.thumbnail?.url ? (
                                                 <img
                                                     src={exam.thumbnail.url}
                                                     alt={exam.title}
-                                                    className="h-20 w-20 rounded-xl object-cover"
+                                                    className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-20 sm:w-20"
                                                 />
                                             ) : (
                                                 <div className="grid h-20 w-20 place-items-center rounded-xl bg-violet-600/20">
@@ -138,7 +138,7 @@ export function UserSection({ type }) {
                                                 </div>
                                             )}
 
-                                            <div>
+                                            <div className="min-w-0">
                                                 <h3 className="text-lg font-bold text-white">
                                                     {exam.title}
                                                 </h3>
@@ -161,18 +161,18 @@ export function UserSection({ type }) {
                                         </div>
 
                                         {/* Right Buttons */}
-                                        <div className="flex flex-wrap gap-3">
+                                        <div className="grid gap-3 sm:flex sm:flex-wrap">
                                             {isPurchased ? (
                                                 <button
                                                     onClick={() => navigate(`/exam/${exam.slug}`)}
-                                                    className="rounded-xl bg-emerald-600 px-4 py-2 font-semibold hover:bg-emerald-700"
+                                                    className="w-full rounded-xl bg-emerald-600 px-4 py-2 font-semibold hover:bg-emerald-700 sm:w-auto"
                                                 >
                                                     View Notes
                                                 </button>
                                             ) : (
                                                 <button
                                                     onClick={() => navigate(`/exam/${exam.slug}`)}
-                                                    className="rounded-xl bg-violet-600 px-4 py-2 font-semibold hover:bg-violet-700"
+                                                    className="w-full rounded-xl bg-violet-600 px-4 py-2 font-semibold hover:bg-violet-700 sm:w-auto"
                                                 >
                                                     Buy Now
                                                 </button>
@@ -190,7 +190,7 @@ export function UserSection({ type }) {
                                                         console.log(err.response?.data);
                                                     }
                                                 }}
-                                                className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-red-300 hover:bg-red-500/20"
+                                                className="w-full rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-red-300 hover:bg-red-500/20 sm:w-auto"
                                             >
                                                 <Trash2 className="mr-2 inline" size={16} />
                                                 Remove
@@ -224,7 +224,7 @@ export function UserSection({ type }) {
                             data.map((n) => (
                                 <div
                                     key={n._id}
-                                    className="rounded-xl bg-white/5 p-4"
+                                    className="break-words rounded-xl bg-white/5 p-4"
                                 >
                                     {n.message}
                                 </div>
@@ -263,12 +263,12 @@ export function UserSection({ type }) {
                                     className="rounded-2xl border border-white/10 bg-[#111A3C] p-6"
                                 >
                                     <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                                        <div className="flex gap-4">
+                                        <div className="flex min-w-0 gap-4">
                                             <div className="grid h-16 w-16 place-items-center rounded-xl bg-violet-600/20">
                                                 <BookOpen className="text-violet-400" size={28} />
                                             </div>
 
-                                            <div>
+                                            <div className="min-w-0">
                                                 <h2 className="text-xl font-bold">{order.exam?.title}</h2>
 
                                                 <div className="mt-2">
@@ -286,7 +286,7 @@ export function UserSection({ type }) {
 
                                         <Link
                                             to={`/exam/${order.exam?.slug}`}
-                                            className="rounded-xl bg-violet-600 px-5 py-3 text-center font-semibold hover:bg-violet-700"
+                                            className="w-full rounded-xl bg-violet-600 px-5 py-3 text-center font-semibold hover:bg-violet-700 md:w-auto"
                                         >
                                             Open Notes
                                         </Link>

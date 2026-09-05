@@ -25,9 +25,9 @@ export default function Purchased() {
     return (
         <>
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Purchased Notes</h1>
+                    <h1 className="text-2xl font-bold text-white sm:text-3xl">Purchased Notes</h1>
                     <p className="mt-2 text-slate-400">
                         Access all your purchased exam notes and download full PDFs.
                     </p>
@@ -47,7 +47,7 @@ export default function Purchased() {
                     >
                         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                             {/* Left */}
-                            <div className="flex items-center gap-4">
+                                <div className="flex min-w-0 items-start gap-4">
                                 <div className="grid h-16 w-16 place-items-center rounded-xl bg-violet-600/20">
                                     <BookOpen className="text-violet-400" size={30} />
                                 </div>
@@ -64,10 +64,10 @@ export default function Purchased() {
                             </div>
 
                             {/* Right Buttons */}
-                            <div className="flex flex-wrap gap-3">
+                                <div className="grid gap-3 sm:flex sm:flex-wrap">
                                 <Link
                                     to={`/exam/${order.exam?.slug}`}
-                                    className="rounded-xl bg-violet-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-violet-700"
+                                    className="w-full rounded-xl bg-violet-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-violet-700 sm:w-auto"
                                 >
                                     <Eye className="mr-2 inline" size={18} />
                                     View Notes
@@ -75,7 +75,7 @@ export default function Purchased() {
 
                                 <Link
                                     to={`/exam/${order.exam?.slug}`}
-                                    className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-white transition hover:bg-white/10"
+                                    className="w-full rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-center text-white transition hover:bg-white/10 sm:w-auto"
                                 >
                                     <Download className="mr-2 inline" size={18} />
                                     Download Notes
@@ -105,7 +105,7 @@ export default function Purchased() {
                             <Link
                                 key={item._id}
                                 to={`/exam/${item.exam?.slug}`}
-                                className="flex items-center justify-between rounded-xl bg-white/5 p-4 transition hover:bg-white/10"
+                                className="flex items-center justify-between gap-3 rounded-xl bg-white/5 p-4 transition hover:bg-white/10"
                             >
                                 <div>
                                     <p className="font-medium text-white">
@@ -138,7 +138,7 @@ export default function Purchased() {
                         {data.downloads.map((item) => (
                             <div
                                 key={item._id}
-                                className="flex items-center justify-between rounded-xl bg-white/5 p-4"
+                                className="flex items-center justify-between gap-3 rounded-xl bg-white/5 p-4"
                             >
                                 <div>
                                     <p className="font-medium text-white">
