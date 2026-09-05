@@ -19,13 +19,14 @@ import {
 
 import { Link, useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
-const [ownedExamIds, setOwnedExamIds] = useState([]);
+
 const Stat = ({ icon: Icon, label, value, color = 'text-indigo-300' }) =>
     <div className="glass rounded-2xl p-5"><Icon className={color} /><p className="mt-4 text-2xl font-bold">{value}</p><p className="text-sm text-slate-400">{label}</p></div>; const Panel = ({ title, children }) => <section className="glass rounded-2xl p-5"><h2 className="font-bold">{title}</h2>{children}</section>;
 export function UserDashboard() { const user = useSelector(s => s.auth.user); return <><p className="text-indigo-300">Your study space</p><h1 className="mt-1 text-3xl font-bold">Good to see you, {user?.name?.split(' ')[0]}.</h1><div className="mt-7 grid gap-4 sm:grid-cols-3"><Stat icon={BookOpen} value="0" label="Purchased exams" /><Stat icon={Heart} value="0" label="Saved exams" color="text-pink-300" /><Stat icon={GraduationCap} value="0h" label="Study time this week" color="text-emerald-300" /></div><div className="mt-6 grid gap-5 lg:grid-cols-2"><Panel title="Continue learning"><div className="mt-4 rounded-xl border border-dashed border-white/15 p-7 text-center text-sm text-slate-400">Your purchased courses will appear here.<br /><Link className="mt-2 inline-block text-indigo-300" to="/exams">Browse examinations →</Link></div></Panel><Panel title="Daily focus"><div className="mt-5 h-3 rounded-full bg-white/10"><div className="h-full w-1/3 rounded-full bg-indigo-500" /></div><p className="mt-3 text-sm text-slate-400">Set a goal in Settings and build your streak.</p></Panel></div></> }
 
 export function UserSection({ type }) {
     const [data, setData] = useState([]);
+    const [ownedExamIds, setOwnedExamIds] = useState([]);
     const user = useSelector((s) => s.auth.user);
     const navigate = useNavigate();
     const title = {
@@ -38,24 +39,27 @@ export function UserSection({ type }) {
     }[type];
 
     useEffect(() => {
+        if (type === "wishlist") {
+            Promise.all([api.get("/wishlist"), api.get("/purchases/my")])
+                .then(([wishRes, purchaseRes]) => {
+                    setData(wishRes.data.data.exams || []);
+                    setOwnedExamIds(
+                        (purchaseRes.data.data.ownedExamIds || []).map(String)
+                    );
+                })
+                .catch(() => { });
+            return;
+        }
+
         const paths = {
-            wishlist: "/wishlist",
-            orders: "/purchases/my", // ✅ Orders now comes from purchases API
+            orders: "/orders/my",
             notifications: "/notifications/my",
         };
 
         if (paths[type]) {
             api
                 .get(paths[type])
-                .then((res) => {
-                    if (type === "wishlist") {
-                        setData(res.data.data.exams || []);
-                    } else if (type === "orders") {
-                        setData(res.data.data.orders || []);
-                    } else {
-                        setData(res.data.data || []);
-                    }
-                })
+                .then((r) => setData(r.data.data))
                 .catch(() => { });
         }
     }, [type]);
@@ -158,7 +162,6 @@ export function UserSection({ type }) {
 
                                         {/* Right Buttons */}
                                         <div className="flex flex-wrap gap-3">
-                                            {/* Purchased → View Notes | Not Purchased → Buy Now */}
                                             {isPurchased ? (
                                                 <button
                                                     onClick={() => navigate(`/exam/${exam.slug}`)}
@@ -171,12 +174,10 @@ export function UserSection({ type }) {
                                                     onClick={() => navigate(`/exam/${exam.slug}`)}
                                                     className="rounded-xl bg-violet-600 px-4 py-2 font-semibold hover:bg-violet-700"
                                                 >
-                                                    <ShoppingCart className="mr-2 inline" size={16} />
                                                     Buy Now
                                                 </button>
                                             )}
 
-                                            {/* Remove Wishlist */}
                                             <button
                                                 onClick={async () => {
                                                     try {
